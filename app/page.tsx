@@ -1,65 +1,127 @@
-import Image from "next/image";
+'use client';
+
+import { useState } from 'react';
+import RSSForm from '@/components/RSSForm';
+import ArticleTable from '@/components/ArticleTable';
+import ErrorMessage from '@/components/ErrorMessage';
+import { parseRSSFeed } from '@/lib/rssParser';
+import { Article } from '@/types/article';
 
 export default function Home() {
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleRSSSubmit = async (url: string) => {
+    setIsLoading(true);
+    setError(null);
+    setArticles([]);
+
+    try {
+      const result = await parseRSSFeed(url);
+
+      if (result.success && result.articles) {
+        setArticles(result.articles);
+        setError(null);
+      } else {
+        setError(result.error || 'Failed to parse RSS feed');
+        setArticles([]);
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'An unexpected error occurred while parsing the RSS feed.'
+      );
+      setArticles([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleArticlesChange = (updatedArticles: Article[]) => {
+    setArticles(updatedArticles);
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="min-h-screen bg-gray-50 py-8 dark:bg-gray-900">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-8 text-center">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
+            RSS Feed Parser
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
+            Parse RSS feeds, edit articles, and generate updated XML files
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+
+        <div className="mx-auto max-w-4xl">
+          <RSSForm onSubmit={handleRSSSubmit} isLoading={isLoading} />
+
+          {error && (
+            <ErrorMessage
+              message={error}
+              onDismiss={() => setError(null)}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          )}
+
+          {articles.length > 0 && (
+            <ArticleTable
+              articles={articles}
+              onArticlesChange={handleArticlesChange}
+            />
+          )}
+
+          {!isLoading && articles.length === 0 && !error && (
+            <div className="rounded-lg border border-gray-200 bg-white p-8 dark:border-gray-700 dark:bg-gray-800">
+              <div className="text-center">
+                <svg
+                  className="mx-auto h-12 w-12 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+                <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">
+                  No articles loaded
+                </h3>
+                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                  Enter an RSS feed URL above to get started
+                </p>
+              </div>
+              
+              <div className="mt-6 border-t border-gray-200 pt-6 dark:border-gray-700">
+                <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  Example RSS Feed URLs to try:
+                </h4>
+                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                  <li>
+                    <span className="font-mono text-xs">• https://www1.cbn.com/rss-cbn-news</span>
+                    <span className="ml-2 text-xs text-gray-500">(CBN News)</span>
+                  </li>
+                  <li>
+                    <span className="font-mono text-xs">• http://feeds.bbci.co.uk/news/world/rss.xml</span>
+                    <span className="ml-2 text-xs text-gray-500">(BBC World News)</span>
+                  </li>
+                  <li>
+                    <span className="font-mono text-xs">• https://rss.cnn.com/rss/edition.rss</span>
+                    <span className="ml-2 text-xs text-gray-500">(CNN)</span>
+                  </li>
+                </ul>
+                <p className="mt-4 text-xs text-amber-600 dark:text-amber-400">
+                  ⚠️ Note: Make sure to use the actual RSS feed URL (usually ends with .xml or contains /rss/), not a webpage URL.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
-      </main>
+      </div>
     </div>
   );
 }
