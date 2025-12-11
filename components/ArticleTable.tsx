@@ -65,10 +65,12 @@ export default function ArticleTable({ articles, onArticlesChange, rssFeedUrl }:
     setValidationErrors(allErrors);
 
     if (hasErrors) {
-      // Scroll to first error
-      const firstErrorId = Object.keys(allErrors)[0];
-      const element = document.querySelector(`[data-article-id="${firstErrorId}"]`);
-      element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Scroll to first error (only in browser)
+      if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+        const firstErrorId = Object.keys(allErrors)[0];
+        const element = document.querySelector(`[data-article-id="${firstErrorId}"]`);
+        element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
       return;
     }
 

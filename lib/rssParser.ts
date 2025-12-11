@@ -46,7 +46,14 @@ export async function parseRSSFeed(url: string): Promise<RSSParseResult> {
 
     const xmlText = await response.text();
     
-    // Parse XML
+    // Parse XML (requires browser environment)
+    if (typeof DOMParser === 'undefined') {
+      return {
+        success: false,
+        error: 'XML parsing requires browser environment',
+      };
+    }
+    
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
 

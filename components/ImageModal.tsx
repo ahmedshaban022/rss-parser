@@ -65,11 +65,12 @@ export default function ImageModal({ imageUrl, imageAlt, onClose }: ImageModalPr
           alt={imageAlt}
           className="max-h-[90vh] max-w-full rounded-lg object-contain"
           onError={(e) => {
-            (e.target as HTMLImageElement).style.display = 'none';
+            const img = e.target as HTMLImageElement;
+            img.style.display = 'none';
             const errorDiv = document.createElement('div');
             errorDiv.className = 'rounded-lg bg-red-500/20 p-8 text-center text-white';
             errorDiv.textContent = 'Failed to load image';
-            e.target.parentElement?.appendChild(errorDiv);
+            img.parentElement?.appendChild(errorDiv);
           }}
         />
       </div>

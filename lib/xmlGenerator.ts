@@ -30,11 +30,11 @@ export function generateRSSXML(
 
   const xmlHeader = '<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0">\n  <channel>\n';
   
-  const channelXML = `    <title>${escapeXML(channel.title!)}</title>
-    <description>${escapeXML(channel.description!)}</description>
-    <link>${escapeXML(channel.link!)}</link>
-    <language>${escapeXML(channel.language!)}</language>
-    <lastBuildDate>${escapeXML(channel.lastBuildDate!)}</lastBuildDate>
+  const channelXML = `    <title>${escapeXML(channel.title || '')}</title>
+    <description>${escapeXML(channel.description || '')}</description>
+    <link>${escapeXML(channel.link || '')}</link>
+    <language>${escapeXML(channel.language || 'en-US')}</language>
+    <lastBuildDate>${escapeXML(channel.lastBuildDate || now)}</lastBuildDate>
     <generator>RSS Parser Application</generator>
 `;
 
@@ -68,8 +68,15 @@ function escapeXML(str: string): string {
 
 /**
  * Downloads XML content as a file
+ * Only works in browser environment
  */
 export function downloadXML(xmlContent: string, filename: string = 'rss-feed.xml'): void {
+  // Check if we're in browser environment
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    console.error('downloadXML can only be called in browser environment');
+    return;
+  }
+
   const blob = new Blob([xmlContent], { type: 'application/xml' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
