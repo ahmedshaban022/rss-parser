@@ -4,6 +4,7 @@ import { useState } from 'react';
 import RSSForm from '@/components/RSSForm';
 import ArticleTable from '@/components/ArticleTable';
 import ErrorMessage from '@/components/ErrorMessage';
+import LoadingOverlay from '@/components/LoadingOverlay';
 import { parseRSSFeed } from '@/lib/rssParser';
 import { Article } from '@/types/article';
 
@@ -11,21 +12,38 @@ export default function Home() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState<string>('Parsing RSS feed...');
+  const [rssFeedUrl, setRssFeedUrl] = useState<string>('');
+  const [resetTrigger, setResetTrigger] = useState(0);
 
   const handleRSSSubmit = async (url: string) => {
     setIsLoading(true);
     setError(null);
     setArticles([]);
+    setRssFeedUrl(url);
+    setLoadingMessage('Fetching RSS feed...');
 
     try {
+      // Update loading message after a short delay
+      const timeout1 = setTimeout(() => {
+        setLoadingMessage('Parsing XML content...');
+      }, 500);
+
       const result = await parseRSSFeed(url);
+      clearTimeout(timeout1);
+
+      setLoadingMessage('Processing articles...');
 
       if (result.success && result.articles) {
         setArticles(result.articles);
         setError(null);
+        setLoadingMessage(`Successfully loaded ${result.articles.length} article(s)`);
+        // Keep message visible briefly before hiding overlay
+        await new Promise((resolve) => setTimeout(resolve, 800));
       } else {
         setError(result.error || 'Failed to parse RSS feed');
         setArticles([]);
+        setRssFeedUrl('');
       }
     } catch (err) {
       setError(
@@ -34,8 +52,10 @@ export default function Home() {
           : 'An unexpected error occurred while parsing the RSS feed.'
       );
       setArticles([]);
+      setRssFeedUrl('');
     } finally {
       setIsLoading(false);
+      setLoadingMessage('Parsing RSS feed...');
     }
   };
 
@@ -43,8 +63,22 @@ export default function Home() {
     setArticles(updatedArticles);
   };
 
+  const handleClear = () => {
+    setArticles([]);
+    setError(null);
+    setRssFeedUrl('');
+    setIsLoading(false);
+    setResetTrigger((prev) => prev + 1);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 dark:bg-gray-900">
+      {isLoading && (
+        <LoadingOverlay
+          message={loadingMessage}
+          subMessage="This may take a few moments for large feeds..."
+        />
+      )}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
@@ -56,7 +90,33 @@ export default function Home() {
         </div>
 
         <div className="mx-auto max-w-4xl">
-          <RSSForm onSubmit={handleRSSSubmit} isLoading={isLoading} />
+          <div className="mb-4 flex items-center justify-end gap-2">
+            {(articles.length > 0 || error) && (
+              <button
+                onClick={handleClear}
+                className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                type="button"
+              >
+                <span className="flex items-center gap-2">
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                  Clear
+                </span>
+              </button>
+            )}
+          </div>
+          <RSSForm onSubmit={handleRSSSubmit} isLoading={isLoading} resetTrigger={resetTrigger} />
 
           {error && (
             <ErrorMessage
@@ -69,6 +129,7 @@ export default function Home() {
             <ArticleTable
               articles={articles}
               onArticlesChange={handleArticlesChange}
+              rssFeedUrl={rssFeedUrl}
             />
           )}
 

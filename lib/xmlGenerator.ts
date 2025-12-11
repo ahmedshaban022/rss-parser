@@ -1,25 +1,57 @@
 import { Article } from '@/types/article';
 
+interface RSSChannelMetadata {
+  title?: string;
+  description?: string;
+  link?: string;
+  language?: string;
+  lastBuildDate?: string;
+}
+
 /**
  * Generates XML string from articles array
  * Uses the custom news-topic format as shown in the assignment
+ * Includes RSS channel metadata for a complete RSS feed structure
  */
-export function generateRSSXML(articles: Article[]): string {
-  const xmlHeader = '<?xml version="1.0" encoding="UTF-8"?>\n<rss>\n';
-  const xmlFooter = '</rss>';
+export function generateRSSXML(
+  articles: Article[],
+  channelMetadata?: RSSChannelMetadata
+): string {
+  const now = new Date().toUTCString();
+  
+  // Default channel metadata
+  const channel: RSSChannelMetadata = {
+    title: channelMetadata?.title || 'RSS Feed',
+    description: channelMetadata?.description || 'Generated RSS Feed',
+    link: channelMetadata?.link || '',
+    language: channelMetadata?.language || 'en-US',
+    lastBuildDate: channelMetadata?.lastBuildDate || now,
+  };
+
+  const xmlHeader = '<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0">\n  <channel>\n';
+  
+  const channelXML = `    <title>${escapeXML(channel.title!)}</title>
+    <description>${escapeXML(channel.description!)}</description>
+    <link>${escapeXML(channel.link!)}</link>
+    <language>${escapeXML(channel.language!)}</language>
+    <lastBuildDate>${escapeXML(channel.lastBuildDate!)}</lastBuildDate>
+    <generator>RSS Parser Application</generator>
+`;
 
   const articlesXML = articles
     .map((article) => {
-      return `  <news-topic>
-    <article-title>${escapeXML(article.title)}</article-title>
-    <article-details>${escapeXML(article.details)}</article-details>
-    <article-image>${escapeXML(article.image)}</article-image>
-    <article-publish-date>${escapeXML(article.publishDate)}</article-publish-date>
-  </news-topic>`;
+      return `    <news-topic>
+      <article-title>${escapeXML(article.title)}</article-title>
+      <article-details>${escapeXML(article.details)}</article-details>
+      <article-image>${escapeXML(article.image)}</article-image>
+      <article-publish-date>${escapeXML(article.publishDate)}</article-publish-date>
+    </news-topic>`;
     })
     .join('\n');
 
-  return xmlHeader + articlesXML + '\n' + xmlFooter;
+  const xmlFooter = '  </channel>\n</rss>';
+
+  return xmlHeader + channelXML + articlesXML + '\n' + xmlFooter;
 }
 
 /**

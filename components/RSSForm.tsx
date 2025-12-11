@@ -1,14 +1,22 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 
 interface RSSFormProps {
   onSubmit: (url: string) => void;
   isLoading?: boolean;
+  onClear?: () => void;
+  resetTrigger?: number;
 }
 
-export default function RSSForm({ onSubmit, isLoading = false }: RSSFormProps) {
+export default function RSSForm({ onSubmit, isLoading = false, resetTrigger }: RSSFormProps) {
   const [url, setUrl] = useState('');
+
+  useEffect(() => {
+    if (resetTrigger !== undefined && resetTrigger > 0) {
+      setUrl('');
+    }
+  }, [resetTrigger]);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
