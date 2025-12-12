@@ -37,7 +37,7 @@ export default function RSSForm({ onSubmit, isLoading = false, resetTrigger }: R
             type="url"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="Enter RSS feed URL (e.g., https://www1.cbn.com/rss-cbn-news)"
+            placeholder="Enter RSS feed URL (e.g., http://feeds.bbci.co.uk/news/world/rss.xml)"
             className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400"
             required
             disabled={isLoading}

@@ -163,16 +163,20 @@ export default function Home() {
                 </h4>
                 <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                   <li>
-                    <span className="font-mono text-xs">• https://www1.cbn.com/rss-cbn-news</span>
-                    <span className="ml-2 text-xs text-gray-500">(CBN News)</span>
-                  </li>
-                  <li>
                     <span className="font-mono text-xs">• http://feeds.bbci.co.uk/news/world/rss.xml</span>
                     <span className="ml-2 text-xs text-gray-500">(BBC World News)</span>
                   </li>
                   <li>
-                    <span className="font-mono text-xs">• https://rss.cnn.com/rss/edition.rss</span>
-                    <span className="ml-2 text-xs text-gray-500">(CNN)</span>
+                    <span className="font-mono text-xs">• http://rss.cnn.com/rss/cnn_topstories.rss</span>
+                    <span className="ml-2 text-xs text-gray-500">(CNN Top Stories)</span>
+                  </li>
+                  <li>
+                    <span className="font-mono text-xs">• http://feeds.reuters.com/Reuters/worldNews</span>
+                    <span className="ml-2 text-xs text-gray-500">(Reuters World News)</span>
+                  </li>
+                  <li>
+                    <span className="font-mono text-xs">• http://www.theguardian.com/world/rss</span>
+                    <span className="ml-2 text-xs text-gray-500">(The Guardian World)</span>
                   </li>
                 </ul>
                 <p className="mt-4 text-xs text-amber-600 dark:text-amber-400">
@@ -186,3 +190,4 @@ export default function Home() {
     </div>
   );
 }
+
